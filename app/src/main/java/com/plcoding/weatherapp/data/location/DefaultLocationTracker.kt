@@ -21,6 +21,7 @@ class DefaultLocationTracker @Inject constructor(
 ): LocationTracker {
 
     override suspend fun getCurrentLocation(): Location? {
+        // Check if the app has the necessary location permissions
         val hasAccessFineLocationPermission = ContextCompat.checkSelfPermission(
             application,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -30,15 +31,20 @@ class DefaultLocationTracker @Inject constructor(
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
+        // Check if GPS is enabled
         val locationManager = application.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                
+        // Return null if permissions or GPS is not available
         if(!hasAccessCoarseLocationPermission || !hasAccessFineLocationPermission || !isGpsEnabled) {
             return null
         }
 
         return suspendCancellableCoroutine { cont ->
+            // Retrieve the last known location from the location client
             locationClient.lastLocation.apply {
+                // If the location is already available, resume with the result
                 if(isComplete) {
                     if(isSuccessful) {
                         cont.resume(result)
@@ -47,6 +53,7 @@ class DefaultLocationTracker @Inject constructor(
                     }
                     return@suspendCancellableCoroutine
                 }
+                // Add success, failure, and cancellation listeners to the location client
                 addOnSuccessListener {
                     cont.resume(it)
                 }
