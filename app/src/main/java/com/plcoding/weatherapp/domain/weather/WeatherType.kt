@@ -3,6 +3,7 @@ package com.plcoding.weatherapp.domain.weather
 import androidx.annotation.DrawableRes
 import com.plcoding.weatherapp.R
 
+// Here we define the objects that link us to the different types of weather
 sealed class WeatherType(
     val weatherDesc: String,
     @DrawableRes val iconRes: Int
@@ -116,6 +117,7 @@ sealed class WeatherType(
         iconRes = R.drawable.ic_rainythunder
     )
 
+    // every integer has linked to it the weather type
     companion object {
         fun fromWMO(code: Int): WeatherType {
             return when(code) {
